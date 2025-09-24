@@ -229,6 +229,7 @@ def test_divide_calculation_execute_division_by_zero():
     # Verify the exception message is as expected
     assert str(exc_info.value) == "Cannot divide by zero."
 
+@patch.object(Operation, 'power')
 def test_power_calculation_execute_positive(mock_power):
     # Arrange
     a = 2.0
@@ -244,6 +245,7 @@ def test_power_calculation_execute_positive(mock_power):
     mock_power.assert_called_once_with(a, b)
     assert result == expected_result
 
+@patch.object(Operation, 'power')
 def test_power_calculation_execute_negative(mock_power):
     # Arrange
     a = 2.0
@@ -258,6 +260,7 @@ def test_power_calculation_execute_negative(mock_power):
     # Verify that the exception message is as expected
     assert str(exc_info.value) == "Power error"
 
+@patch.object(Operation, 'modulus')
 def test_modulus_calculation_execute_positive(mock_modulus):    
     # Arrange
     a = 10.0
@@ -272,7 +275,8 @@ def test_modulus_calculation_execute_positive(mock_modulus):
     # Assert
     mock_modulus.assert_called_once_with(a, b)
     assert result == expected_result
-
+    
+@patch.object(Operation, 'modulus')
 def test_modulus_calculation_execute_negative(mock_modulus):
     # Arrange
     a = 10.0
