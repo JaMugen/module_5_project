@@ -1,19 +1,30 @@
-# This line is importing the "calculator" function from another file.
-# Imagine that "calculator" is like a tool or recipe that we've already written somewhere else,
-# and now we are telling the computer, "Go and find that calculator tool for us."
-# The "app" part is like a folder, and inside that folder, there's another file called "calculator.py",
-# which has the tool (function) called "calculator" that we need.
-from app.calculator import calculator
+"""
+Advanced Object-Oriented Programming: Complete Calculator Implementation
+====================================================================
 
-# This part of the code is super important! It checks if this file is being run directly by the computer.
-# Let me explain: when we write Python programs, sometimes we want to run them directly,
-# and other times we just want to use parts of the program inside other programs.
-# The "__name__" is a special word in Python. It tells us if we are running the program directly.
-# "__main__" is what Python calls this program when we run it directly.
+A comprehensive educational example demonstrating OOP principles, design patterns,
+and Python best practices through a calculator implementation.
 
-# So, what this line means is: "If you're running this program directly (not as part of another program), 
-# then go ahead and start the calculator."
+Key Features:
+------------
+1. Design Patterns: Singleton, Strategy, Observer, Factory, Command, Memento
+2. Error Handling: Custom exception hierarchy
+3. Input Validation: Robust input checking
+4. Persistence: History saving/loading
+5. Testing: Unit test suite
+6. Logging: Comprehensive logging system
+7. Documentation: Educational comments
+8. Type Hints: Static type checking support
+
+Version: 1.0
+"""
+
+
+
+
+
+from app.calculator_repl import calculator_repl
+
+
 if __name__ == "__main__":
-    # Now, we use the calculator tool we got earlier. This will start the calculator, which is a program 
-    # that keeps running and doing math based on what we tell it.
-    calculator()
+    calculator_repl()
