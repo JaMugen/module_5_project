@@ -1,17 +1,8 @@
-# .gitignore
-
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Virtual environment folder
-venv/
-
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -25,20 +16,50 @@ parts/
 sdist/
 var/
 wheels/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+.venv
+.python-version
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# Calculator-specific files
+logs/
+history/
+*.log
+*.csv
+calculator_history.*
+
+# IDE - VSCode
+#.vscode/
+*.code-workspace
+
+# IDE - PyCharm
+.idea/
+*.iml
+*.iws
+.idea_modules/
+
+# IDE - Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Mac OS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
 # Unit test / coverage reports
 htmlcov/
@@ -50,38 +71,16 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
 .hypothesis/
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Pytest
-.pytest_cache/
-
-# Django stuff:
-*.log
+# Local development configuration
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# Pyre type checker
-.pyre/
-
-# VSCode project files
-# .vscode/
-
-# IDE files
-*.idea/
-*.sublime-project
-*.sublime-workspace
