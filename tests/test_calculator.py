@@ -1,3 +1,4 @@
+from ast import ExceptHandler
 import datetime
 from pathlib import Path
 import pandas as pd
@@ -320,8 +321,6 @@ def test_calculator_repl_second_input_cancel(monkeypatch, operation):
         calculator_repl()
     mock_print.assert_any_call("Operation cancelled")
 
-
-
 @patch('builtins.input', side_effect=['add', '2', '3', 'exit'])
 @patch('builtins.print')
 def test_calculator_repl_addition(mock_print, mock_input):
@@ -329,4 +328,10 @@ def test_calculator_repl_addition(mock_print, mock_input):
     mock_print.assert_any_call("\nResult: 5")
 
 
+@patch('builtins.input', side_effect=['unknown', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_unknown_command(mock_print, mock_input):
+    calculator_repl()
+    mock_print.assert_any_call("Unknown command: 'unknown'. Type 'help' for available commands.")
 
+                                                                                                                                                          
