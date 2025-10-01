@@ -290,6 +290,38 @@ def test_calculator_repl_load_failure_warns(mock_print, mock_input):
             calculator_repl()
             mock_print.assert_any_call("Error loading history: file not found") 
 
+@pytest.mark.parametrize("operation", [
+    'add', 'subtract', 'multiply', 'divide', 'power', 'root'
+])
+def test_calculator_repl_first_input_cancel(monkeypatch, operation):
+    """
+    Verify that entering an operation then 'cancel' triggers the REPL to print
+    "Operation cancelled" and not raise.
+    """
+    inputs = [operation, 'cancel', 'exit']
+    # monkeypatch input to return successive values from inputs
+    monkeypatch.setattr('builtins.input', lambda prompt='': inputs.pop(0))
+    with patch('builtins.print') as mock_print:
+        calculator_repl()
+    mock_print.assert_any_call("Operation cancelled")
+
+
+@pytest.mark.parametrize("operation", [
+    'add', 'subtract', 'multiply', 'divide', 'power', 'root'
+])
+def test_calculator_repl_second_input_cancel(monkeypatch, operation):
+    """
+    Verify that entering an operation, a first operand, then 'cancel' triggers
+    the REPL to print "Operation cancelled".
+    """
+    inputs = [operation, '2', 'cancel', 'exit']
+    monkeypatch.setattr('builtins.input', lambda prompt='': inputs.pop(0))
+    with patch('builtins.print') as mock_print:
+        calculator_repl()
+    mock_print.assert_any_call("Operation cancelled")
+
+
+
 @patch('builtins.input', side_effect=['add', '2', '3', 'exit'])
 @patch('builtins.print')
 def test_calculator_repl_addition(mock_print, mock_input):
