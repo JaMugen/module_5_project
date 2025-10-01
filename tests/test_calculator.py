@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch, PropertyMock
 from decimal import Decimal
 from tempfile import TemporaryDirectory
 from app.calculator import Calculator
+from app.calculation import Calculation
 from app.calculator_repl import calculator_repl
 from app.calculator_config import CalculatorConfig
 from app.exceptions import OperationError, ValidationError
@@ -177,11 +178,70 @@ def test_calculator_repl_exit_save_failure_warns(mock_print, mock_input):
         mock_print.assert_any_call("Warning: Could not save history: disk full")
         mock_print.assert_any_call("Goodbye!")
 
+@patch('builtins.input', side_effect=['history', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_history_empty_prints_no_history(mock_print, mock_input):
+    # When show_history returns an empty list, REPL should print the 'No calculations in history' message
+    with patch('app.calculator.Calculator.show_history', return_value=[]):
+        with patch('app.calculator.Calculator.save_history'):
+            calculator_repl()
+
+    mock_print.assert_any_call("No calculations in history")
+
+
+@patch('builtins.input', side_effect=['history', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_history_prints_entries(mock_print, mock_input):
+  
+    calc1 = Calculation(operation="Addition", operand1=Decimal('2'), operand2=Decimal('3'))
+    calc2 = Calculation(operation="Multiplication", operand1=Decimal('4'), operand2=Decimal('5'))
+
+    with patch('app.calculator.Calculator.show_history', return_value=[calc1, calc2]):
+        # Patch save_history to avoid side effects on exit
+        with patch('app.calculator.Calculator.save_history'):
+            calculator_repl()
+
+    # Header should be printed
+    mock_print.assert_any_call("\nCalculation History:")
+    # Entries should be printed with enumeration and Calculation.__str__ representation
+    mock_print.assert_any_call("1. Addition(2, 3) = 5")
+    mock_print.assert_any_call("2. Multiplication(4, 5) = 20")
+
+@patch('builtins.input', side_effect=['clear', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_clear_history(mock_print, mock_input):
+    with patch('app.calculator.Calculator.clear_history') as mock_clear_history:
+        with patch('app.calculator.Calculator.save_history'):
+            calculator_repl()
+            mock_clear_history.assert_called_once()
+            mock_print.assert_any_call("History cleared")
+
 @patch('builtins.input', side_effect=['help', 'exit'])
 @patch('builtins.print')
 def test_calculator_repl_help(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("\nAvailable commands:")
+
+@patch('builtins.input', side_effect=['undo', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_undo_true(mock_print, mock_input):
+    with patch('app.calculator.Calculator.undo', return_value=True) as mock_undo:
+        with patch('app.calculator.Calculator.save_history'):
+            calculator_repl()
+            mock_undo.assert_called_once()
+            mock_print.assert_any_call("Operation undone")
+
+@patch('builtins.input', side_effect=['undo', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_undo_false(mock_print, mock_input):
+    with patch('app.calculator.Calculator.undo', return_value=False) as mock_undo:
+        with patch('app.calculator.Calculator.save_history'):
+            calculator_repl()
+            mock_undo.assert_called_once()
+            mock_print.assert_any_call("Nothing to undo")
+
+
+
 
 @patch('builtins.input', side_effect=['add', '2', '3', 'exit'])
 @patch('builtins.print')
