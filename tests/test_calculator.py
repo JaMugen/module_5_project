@@ -222,6 +222,26 @@ def test_calculator_repl_help(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("\nAvailable commands:")
 
+@patch('builtins.input', side_effect=['redo', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_redo_true(mock_print, mock_input):
+    with patch('app.calculator.Calculator.redo', return_value=True) as mock_redo:
+        with patch('app.calculator.Calculator.save_history'):
+            calculator_repl()
+            mock_redo.assert_called_once()
+            mock_print.assert_any_call("Operation redone")
+
+@patch('builtins.input', side_effect=['redo', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_redo_false(mock_print, mock_input):
+    with patch('app.calculator.Calculator.redo', return_value=False) as mock_redo:
+        with patch('app.calculator.Calculator.save_history'):
+            calculator_repl()
+            mock_redo.assert_called_once()
+            mock_print.assert_any_call("Nothing to redo")
+
+
+
 @patch('builtins.input', side_effect=['undo', 'exit'])
 @patch('builtins.print')
 def test_calculator_repl_undo_true(mock_print, mock_input):
