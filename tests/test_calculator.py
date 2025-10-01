@@ -231,16 +231,6 @@ def test_calculator_repl_redo_true(mock_print, mock_input):
             mock_redo.assert_called_once()
             mock_print.assert_any_call("Operation redone")
 
-@patch('builtins.input', side_effect=['redo', 'exit'])
-@patch('builtins.print')
-def test_calculator_repl_redo_false(mock_print, mock_input):
-    with patch('app.calculator.Calculator.redo', return_value=False) as mock_redo:
-        with patch('app.calculator.Calculator.save_history'):
-            calculator_repl()
-            mock_redo.assert_called_once()
-            mock_print.assert_any_call("Nothing to redo")
-
-
 
 @patch('builtins.input', side_effect=['undo', 'exit'])
 @patch('builtins.print')
@@ -260,8 +250,45 @@ def test_calculator_repl_undo_false(mock_print, mock_input):
             mock_undo.assert_called_once()
             mock_print.assert_any_call("Nothing to undo")
 
+@patch('builtins.input', side_effect=['redo', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_redo_false(mock_print, mock_input):
+    with patch('app.calculator.Calculator.redo', return_value=False) as mock_redo:
+        with patch('app.calculator.Calculator.save_history'):
+            calculator_repl()
+            mock_redo.assert_called_once()
+            mock_print.assert_any_call("Nothing to redo")
 
+@patch('builtins.input', side_effect=['save', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_save_success(mock_print, mock_input):
+    # Patch save_history and assert it was called when 'save' command is used
+    with patch('app.calculator.Calculator.save_history'):
+        calculator_repl()
+        mock_print.assert_any_call("History saved successfully.")
 
+@patch('builtins.input', side_effect=['save', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_save_failure_warns(mock_print, mock_input):
+    with patch('app.calculator.Calculator.save_history', side_effect=Exception("disk full")):
+        calculator_repl()
+        mock_print.assert_any_call("Error saving history: disk full")
+
+@patch('builtins.input', side_effect=['load', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_load_success(mock_print, mock_input):
+    with patch('app.calculator.Calculator.load_history'):
+        with patch('app.calculator.Calculator.save_history'):
+            calculator_repl()
+            mock_print.assert_any_call("History loaded successfully")
+
+@patch('builtins.input', side_effect=['load', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_load_failure_warns(mock_print, mock_input):
+    with patch('app.calculator.Calculator.load_history', side_effect=Exception("file not found")):
+        with patch('app.calculator.Calculator.save_history'):
+            calculator_repl()
+            mock_print.assert_any_call("Error loading history: file not found") 
 
 @patch('builtins.input', side_effect=['add', '2', '3', 'exit'])
 @patch('builtins.print')
