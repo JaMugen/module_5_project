@@ -13,6 +13,9 @@ from app.calculator_config import CalculatorConfig
 from app.exceptions import OperationError, ValidationError
 from app.history import LoggingObserver, AutoSaveObserver
 from app.operations import OperationFactory
+from tempfile import TemporaryDirectory
+from pathlib import Path
+from app.calculator_config import CalculatorConfig
 
 # Fixture to initialize Calculator with a temporary directory for file paths
 @pytest.fixture
@@ -56,6 +59,24 @@ def test_logging_setup(logging_info_mock):
         # Instantiate calculator to trigger logging
         calculator = Calculator(CalculatorConfig())
         logging_info_mock.assert_any_call("Calculator initialized with configuration")
+
+
+@patch('app.calculator.logging.basicConfig', side_effect=Exception("boom"))
+@patch('builtins.print')
+def test_setup_logging_failure_prints_and_raises(mock_print, mock_basicConfig):
+    """
+    Ensure that if logging.basicConfig raises during _setup_logging, the
+    Calculator prints the error message and re-raises the exception.
+    This exercises the except block that prints "Error setting up logging: {e}".
+    """
+    
+
+    with TemporaryDirectory() as td:
+        cfg = CalculatorConfig(base_dir=Path(td))
+        with pytest.raises(Exception, match="boom"):
+            Calculator(config=cfg)
+
+    mock_print.assert_any_call("Error setting up logging: boom")
 
 # Test Adding and Removing Observers
 
