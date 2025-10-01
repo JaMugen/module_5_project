@@ -167,6 +167,16 @@ def test_calculator_repl_exit(mock_print, mock_input):
         mock_print.assert_any_call("History saved successfully.")
         mock_print.assert_any_call("Goodbye!")
 
+
+@patch('builtins.input', side_effect=['exit'])
+@patch('builtins.print')
+def test_calculator_repl_exit_save_failure_warns(mock_print, mock_input):
+    # Simulate save_history raising an exception to exercise the warning branch
+    with patch('app.calculator.Calculator.save_history', side_effect=Exception("disk full")):
+        calculator_repl()
+        mock_print.assert_any_call("Warning: Could not save history: disk full")
+        mock_print.assert_any_call("Goodbye!")
+
 @patch('builtins.input', side_effect=['help', 'exit'])
 @patch('builtins.print')
 def test_calculator_repl_help(mock_print, mock_input):
@@ -178,3 +188,6 @@ def test_calculator_repl_help(mock_print, mock_input):
 def test_calculator_repl_addition(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("\nResult: 5")
+
+
+
