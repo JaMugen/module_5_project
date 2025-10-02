@@ -228,6 +228,61 @@ Then submit the GitHub repository link as instructed.
 
 ---
 
+# 8. REPL Scenario
+
+```
+Calculator started. Type 'help' for commands.
+
+Enter command: help
+
+Available commands:
+   add, subtract, multiply, divide, power, root - Perform calculations
+   history - Show calculation history
+   clear - Clear calculation history
+   undo - Undo the last calculation
+   redo - Redo the last undone calculation
+   save - Save calculation history to file
+   load - Load calculation history from file
+   exit - Exit the calculator
+
+Enter command: add
+
+Enter numbers (or 'cancel' to abort):
+First number: 2
+Second number: 3
+
+Result: 5
+
+Enter command: divide
+
+Enter numbers (or 'cancel' to abort):
+First number: 6
+Second number: 2
+
+Result: 3
+
+Enter command: subtract
+
+Enter numbers (or 'cancel' to abort):
+First number: 6
+Second number: cancel
+Operation cancelled
+
+Enter command: history
+
+Calculation History:
+1. Addition(2, 3) = 5
+2. Division(6, 2) = 3
+
+Enter command: save
+History saved successfully.
+
+Enter command: exit
+History saved successfully.
+Goodbye!
+```
+
+
 # 🔥 Useful Commands Cheat Sheet
 
 | Action                         | Command                                          |
