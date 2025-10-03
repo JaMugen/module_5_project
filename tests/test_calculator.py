@@ -6,6 +6,7 @@ import pytest
 from unittest.mock import Mock, patch, PropertyMock
 from decimal import Decimal
 from tempfile import TemporaryDirectory
+import app
 from app.calculator import Calculator
 from app.calculation import Calculation
 from app.calculator_repl import calculator_repl
@@ -123,7 +124,14 @@ def test_perform_operation_max_history(calculator):
     assert len(calculator.history) == calculator.config.max_history_size
     assert calculator.history[0].operand1 == Decimal('5')
 
-
+def test_perform_operation_exception_handling(calculator):
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    with patch.object(Calculation, 'calculate', side_effect=Exception("calculation error")):
+        with pytest.raises(OperationError, match="calculation error"):
+            calculator.perform_operation(2, 3)
+                                                  
+                                                  
 # Test Undo/Redo Functionality
 
 def test_undo(calculator):
@@ -151,6 +159,24 @@ def test_save_history(mock_to_csv, calculator):
     calculator.save_history()
     mock_to_csv.assert_called_once()
 
+@patch('app.calculator.pd.DataFrame.to_csv')
+def test_save_history_empty(mock_to_csv, calculator):   
+    # Test saving history when history is empty
+    # Ensure history is empty
+    calculator.history = []
+    calculator.save_history()
+    assert mock_to_csv.called
+
+@patch('app.calculator.pd.DataFrame.to_csv', side_effect=Exception("disk full"))
+def test_save_history_exception(mock_to_csv, calculator):
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    calculator.perform_operation(2, 3)
+    with pytest.raises(Exception, match="disk full"):
+        calculator.save_history()
+    mock_to_csv.assert_called_once()
+
+
 @patch('app.calculator.pd.read_csv')
 @patch('app.calculator.Path.exists', return_value=True)
 def test_load_history(mock_exists, mock_read_csv, calculator):
@@ -176,7 +202,25 @@ def test_load_history(mock_exists, mock_read_csv, calculator):
     except OperationError:
         pytest.fail("Loading history failed due to OperationError")
         
-            
+@patch('app.calculator.pd.read_csv')
+@patch('app.calculator.Path.exists', return_value=True)
+def test_load_history_empty(mock_exists, mock_read_csv, calculator):    
+    # Mock read_csv to return an empty DataFrame
+    mock_read_csv.return_value = pd.DataFrame(columns=['operation', 'operand1', 'operand2', 'result', 'timestamp'])
+    
+    # Test loading history when the CSV is empty
+    try:
+        calculator.load_history()
+        assert len(calculator.history) == 0  # History should remain empty
+    except OperationError:
+        pytest.fail("Loading history failed due to OperationError")
+
+@patch('app.calculator.pd.read_csv', side_effect=Exception("file not found"))
+@patch('app.calculator.Path.exists', return_value=True)
+def test_load_history_exception(mock_exists, mock_read_csv, calculator):
+    with pytest.raises(OperationError, match="file not found"):
+        calculator.load_history()
+    mock_read_csv.assert_called_once()
 # Test Clearing History
 
 def test_clear_history(calculator):
