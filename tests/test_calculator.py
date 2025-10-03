@@ -142,7 +142,9 @@ def test_undo(calculator):
     calculator.undo()
     assert calculator.history == []
 
-def test
+def test_undo_nothing_to_undo(calculator):
+    result = calculator.undo()
+    assert result is False
 
 def test_redo(calculator):
     operation = OperationFactory.create_operation('add')
@@ -151,6 +153,11 @@ def test_redo(calculator):
     calculator.undo()
     calculator.redo()
     assert len(calculator.history) == 1
+
+def test_redo_nothing_to_redo(calculator):
+    result = calculator.redo()
+    assert result is False
+
 
 # Test History Management
 
