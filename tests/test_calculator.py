@@ -115,6 +115,15 @@ def test_perform_operation_operation_error(calculator):
     with pytest.raises(OperationError, match="No operation set"):
         calculator.perform_operation(2, 3)
 
+def test_perform_operation_max_history(calculator):
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    for i in range(calculator.config.max_history_size + 5):
+        calculator.perform_operation(i, i)
+    assert len(calculator.history) == calculator.config.max_history_size
+    assert calculator.history[0].operand1 == Decimal('5')
+
+
 # Test Undo/Redo Functionality
 
 def test_undo(calculator):
