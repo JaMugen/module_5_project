@@ -1,6 +1,7 @@
 from ast import ExceptHandler
 import datetime
 from pathlib import Path
+from sqlite3 import Time
 import pandas as pd
 import pytest
 from unittest.mock import Mock, patch, PropertyMock
@@ -141,6 +142,8 @@ def test_undo(calculator):
     calculator.undo()
     assert calculator.history == []
 
+def test
+
 def test_redo(calculator):
     operation = OperationFactory.create_operation('add')
     calculator.set_operation(operation)
@@ -221,6 +224,30 @@ def test_load_history_exception(mock_exists, mock_read_csv, calculator):
     with pytest.raises(OperationError, match="file not found"):
         calculator.load_history()
     mock_read_csv.assert_called_once()
+
+def test_get_history_dataframe(calculator):
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    calculator.perform_operation(2, 3)
+    df = calculator.get_history_dataframe()
+    assert not df.empty
+    assert list(df.columns) == ['operation', 'operand1', 'operand2', 'result', 'timestamp']
+    assert df.iloc[0]['operation'] == 'Addition'
+    assert df.iloc[0]['operand1'] == '2'
+    assert df.iloc[0]['operand2'] == '3'
+    assert df.iloc[0]['result'] == '5'
+    assert isinstance(df.iloc[0]['timestamp'], datetime.datetime)
+    
+def test_show_history(calculator):
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    calculator.perform_operation(2, 3)
+    history = calculator.show_history()
+    assert len(history) == 1
+    # show_history returns formatted strings like: "Addition(2, 3) = 5"
+    assert isinstance(history[0], str)
+    assert history[0] == "Addition(2, 3) = 5"
+
 # Test Clearing History
 
 def test_clear_history(calculator):
