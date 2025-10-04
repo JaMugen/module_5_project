@@ -1,9 +1,10 @@
 import pytest
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import datetime
 from app.calculation import Calculation
 from app.exceptions import OperationError
 import logging
+from unittest.mock import Mock, patch
 
 
 def test_addition():
@@ -55,6 +56,10 @@ def test_unknown_operation():
     with pytest.raises(OperationError, match="Unknown operation"):
         Calculation(operation="Unknown", operand1=Decimal("5"), operand2=Decimal("3"))
 
+def test_InvalidOperation():
+    with patch('app.calculation.pow', side_effect=InvalidOperation("Invalid operation")):
+        with pytest.raises(OperationError, match="Calculation failed: Invalid operation"):
+            Calculation(operation="Power", operand1=Decimal("2"), operand2=Decimal("3"))
 
 def test_to_dict():
     calc = Calculation(operation="Addition", operand1=Decimal("2"), operand2=Decimal("3"))
@@ -108,6 +113,18 @@ def test_equality():
     assert calc1 == calc2
     assert calc1 != calc3
 
+def test_equality_not_calculation():
+    calc = Calculation(operation="Addition", operand1=Decimal("2"), operand2=Decimal("3"))
+    assert calc != "Not a Calculation"
+    
+def test_repr():
+    calc = Calculation(operation="Addition", operand1=Decimal("2"), operand2=Decimal("3"))
+    repr_str = repr(calc)
+    assert "Calculation(operation='Addition'" in repr_str
+    assert "operand1=2" in repr_str
+    assert "operand2=3" in repr_str
+    assert "result=5" in repr_str
+    assert "timestamp=" in repr_str
 
 # New Test to Cover Logging Warning
 def test_from_dict_result_mismatch(caplog):
