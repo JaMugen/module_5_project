@@ -18,6 +18,7 @@ from app.operations import OperationFactory
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from app.calculator_config import CalculatorConfig
+from app.calculator_memento import CalculatorMemento
 
 # Fixture to initialize Calculator with a temporary directory for file paths
 @pytest.fixture
@@ -435,6 +436,18 @@ def test_calculator_repl_addition(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("\nResult: 5")
 
+@patch('builtins.input', side_effect=['add', '2.12345', '0.00023', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_addition_normalize(mock_print, mock_input):
+    calculator_repl()
+    mock_print.assert_any_call("\nResult: 2.12368")
+
+def test_calculator_repl_validation_exception():
+    with patch('builtins.input', side_effect=['add', 'invalid', '3', 'exit']):
+        with patch('builtins.print') as mock_print:
+            calculator_repl()
+            mock_print.assert_any_call("Error: Invalid number format: invalid")
+
 
 @patch('builtins.input', side_effect=['unknown', 'exit'])
 @patch('builtins.print')
@@ -443,3 +456,38 @@ def test_calculator_repl_unknown_command(mock_print, mock_input):
     mock_print.assert_any_call("Unknown command: 'unknown'. Type 'help' for available commands.")
 
                                                                                                                                                           
+# Text Memento
+
+def test_calculator_memento_to_dict():
+    calc1 = Calculation(operation="Addition", operand1=Decimal('2'), operand2=Decimal('3'))
+    calc2 = Calculation(operation="Multiplication", operand1=Decimal('4'), operand2=Decimal('5'))
+    memento = CalculatorMemento(history=[calc1, calc2])
+    memento_dict = memento.to_dict()
+    assert 'history' in memento_dict
+    assert len(memento_dict['history']) == 2
+    assert memento_dict['history'][0]['operation'] == "Addition"
+    assert memento_dict['history'][0]['operand1'] == '2'
+    assert memento_dict['history'][0]['operand2'] == '3'
+    assert memento_dict['history'][0]['result'] == '5'
+    assert memento_dict['history'][1]['operation'] == "Multiplication"
+    assert memento_dict['history'][1]['operand1'] == '4'
+    assert memento_dict['history'][1]['operand2'] == '5'
+    assert memento_dict['history'][1]['result'] == '20'
+    assert 'timestamp' in memento_dict
+
+def test_calculator_memento_from_dict():
+    calc1 = Calculation(operation="Addition", operand1=Decimal('2'), operand2=Decimal('3'))
+    calc2 = Calculation(operation="Multiplication", operand1=Decimal('4'), operand2=Decimal('5'))
+    memento = CalculatorMemento(history=[calc1, calc2])
+    memento_dict = memento.to_dict()
+    restored_memento = CalculatorMemento.from_dict(memento_dict)
+    assert len(restored_memento.history) == 2
+    assert restored_memento.history[0].operation == "Addition"
+    assert restored_memento.history[0].operand1 == Decimal('2')
+    assert restored_memento.history[0].operand2 == Decimal('3')
+    assert restored_memento.history[0].result == Decimal('5')
+    assert restored_memento.history[1].operation == "Multiplication"
+    assert restored_memento.history[1].operand1 == Decimal('4')
+    assert restored_memento.history[1].operand2 == Decimal('5')
+    assert restored_memento.history[1].result == Decimal('20')
+    assert isinstance(restored_memento.timestamp, datetime.datetime)
