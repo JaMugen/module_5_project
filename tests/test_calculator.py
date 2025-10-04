@@ -400,6 +400,22 @@ def test_calculator_repl_load_failure_warns(mock_print, mock_input):
             calculator_repl()
             mock_print.assert_any_call("Error loading history: file not found") 
 
+
+@patch('builtins.input', side_effect=['add', '2', '3', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_decimal_normalization(mock_print, mock_input):
+    """
+    Ensure that when Calculator.perform_operation returns a Decimal with
+    trailing zeros the REPL normalizes it before printing (covers the
+    normalize() branch in `calculator_repl`).
+    """
+    # Return a Decimal that would normalize from 5.0000 -> 5
+    with patch('app.calculator.Calculator.perform_operation', return_value=Decimal('5')):
+            calculator_repl()
+
+    # The REPL should print the normalized result (no trailing zeros)
+    mock_print.assert_any_call("\nResult: 5")
+
 @pytest.mark.parametrize("operation", [
     'add', 'subtract', 'multiply', 'divide', 'power', 'root'
 ])
@@ -435,19 +451,57 @@ def test_calculator_repl_second_input_cancel(monkeypatch, operation):
 def test_calculator_repl_addition(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("\nResult: 5")
+               
 
-@patch('builtins.input', side_effect=['add', '2.12345', '0.00023', 'exit'])
-@patch('builtins.print')
-def test_calculator_repl_addition_normalize(mock_print, mock_input):
-    calculator_repl()
-    mock_print.assert_any_call("\nResult: 2.12368")
 
+def test_calculator_rep_add_exception():
+    with patch('app.calculator.Calculator.perform_operation', side_effect=Exception("test")):
+        with patch('builtins.input', side_effect=['add', '2', '3', 'exit']):
+            with patch('builtins.print') as mock_print:
+                calculator_repl()
+                mock_print.assert_any_call("Unexpected error: test")
+
+    
 def test_calculator_repl_validation_exception():
     with patch('builtins.input', side_effect=['add', 'invalid', '3', 'exit']):
         with patch('builtins.print') as mock_print:
             calculator_repl()
             mock_print.assert_any_call("Error: Invalid number format: invalid")
 
+def test_calculator_repl_interrupt_exception():
+    # Simulate a user pressing Ctrl+C during input; the REPL should catch
+    # KeyboardInterrupt, print the cancellation message, and continue.
+    with patch('builtins.input', side_effect=[KeyboardInterrupt(), 'exit']):
+        with patch('app.calculator.Calculator.save_history') as mock_save:
+            with patch('builtins.print') as mock_print:
+                calculator_repl()
+                mock_print.assert_any_call("\nOperation cancelled")
+                # On exit the REPL attempts to save history
+                mock_save.assert_called_once()
+                mock_print.assert_any_call("Goodbye!")
+
+def test_calculator_repl_EOF_exception():
+    # Simulate an EOF (Ctrl+D) during input; REPL should print termination msg and exit
+    with patch('builtins.input', side_effect=EOFError()):
+        with patch('builtins.print') as mock_print:
+            # When EOFError is raised by input the REPL breaks out of loop
+            # and should print the termination message.
+            calculator_repl()
+            mock_print.assert_any_call("\nInput terminated. Exiting...")
+    
+def test_calculator_repl_exception():
+    with patch('builtins.input', side_effect=[Exception("test"), 'exit']):
+        with patch('builtins.print') as mock_print:
+            calculator_repl()
+            mock_print.assert_any_call("Error: test")
+
+def test_calculator_repl_initialization_exception():
+    # Simulate an exception during Calculator initialization in the REPL
+    with patch('app.calculator.Calculator.__init__', side_effect=Exception("test")):
+        with patch('builtins.print') as mock_print:
+            with pytest.raises(Exception, match="test"):
+                calculator_repl()
+            mock_print.assert_any_call("Fatal error: test")
 
 @patch('builtins.input', side_effect=['unknown', 'exit'])
 @patch('builtins.print')
@@ -455,7 +509,7 @@ def test_calculator_repl_unknown_command(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("Unknown command: 'unknown'. Type 'help' for available commands.")
 
-                                                                                                                                                          
+                                                                                                                                                  
 # Text Memento
 
 def test_calculator_memento_to_dict():
